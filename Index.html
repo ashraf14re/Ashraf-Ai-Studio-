@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Ashraf AI Image Studio</title>
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  padding: 20px;
+  background: #10101f;
+  color: white;
+  font-family: Arial, sans-serif;
+  text-align: center;
+}
+
+h1 { color: cyan; }
+
+.studio {
+  max-width: 550px;
+  margin: 25px auto;
+  padding: 22px;
+  background: #22223a;
+  border-radius: 20px;
+}
+
+textarea, select {
+  width: 100%;
+  padding: 14px;
+  margin: 10px 0;
+  border: none;
+  border-radius: 10px;
+  font-size: 16px;
+}
+
+textarea { height: 110px; }
+
+button {
+  padding: 14px 20px;
+  margin: 8px;
+  border: none;
+  border-radius: 10px;
+  background: cyan;
+  color: #10101f;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+button:disabled { opacity: .5; }
+
+#preview {
+  width: 100%;
+  margin-top: 20px;
+  border-radius: 15px;
+}
+
+#status { color: #ffe66d; }
+
+footer {
+  color: #aaa;
+  margin-top: 30px;
+}
+</style>
+</head>
+
+<body>
+
+<h1>🎨 Ashraf AI Studio</h1>
+<p>Welcome to My Coding World!</p>
+
+<div class="studio">
+
+<h2>AI Image Generator</h2>
+
+<textarea id="prompt"
+placeholder="Describe your image... Example: A cute cat in a garden"></textarea>
+
+<select id="style">
+<option value="photorealistic">Realistic</option>
+<option value="anime">Anime</option>
+<option value="3D render">3D Art</option>
+<option value="cinematic photography">Cinematic</option>
+<option value="fantasy art">Fantasy</option>
+</select>
+
+<select id="ratio">
+<option value="1024:1024">Square</option>
+<option value="16:9">Landscape</option>
+<option value="9:16">Portrait</option>
+</select>
+
+<button id="generate" onclick="generateImage()">
+Generate AI Image ✨
+</button>
+
+<p id="status">Ready to create!</p>
+
+<img id="preview" alt="Your generated AI image"
+style="display:none;">
+
+<br>
+
+<button id="download" onclick="downloadImage()"
+style="display:none;">
+Download Image 📥
+</button>
+
+</div>
+
+<footer>
+Made with ❤️ by Ashraf
+</footer>
+
+<script>
+
+let imageUrl = "";
+
+async function generateImage() {
+
+  const prompt = document.getElementById("prompt").value.trim();
+  const style = document.getElementById("style").value;
+  const ratio = document.getElementById("ratio").value;
+
+  if (!prompt) {
+    alert("Please enter an image prompt!");
+    return;
+  }
+
+  const button = document.getElementById("generate");
+  const status = document.getElementById("status");
+  const preview = document.getElementById("preview");
+  const download = document.getElementById("download");
+
+  button.disabled = true;
+  download.style.display = "none";
+  preview.style.display = "none";
+  status.textContent = "AI is creating your image... Please wait!";
+
+  const fullPrompt = prompt + ", " + style;
+  const dimensions = ratio === "9:16"
+    ? [768, 1365]
+    : ratio === "16:9"
+    ? [1365, 768]
+    : [1024, 1024];
+
+  const url = "https://gen.pollinations.ai/image/" +
+    encodeURIComponent(fullPrompt) +
+    "?model=flux&width=" + dimensions[0] +
+    "&height=" + dimensions[1];
+
+  try {
+    const response = await fetch(url);
+
+    if (!response.ok) {
+      throw new Error("Image request failed: " + response.status);
+    }
+
+    const blob = await response.blob();
+
+    if (!blob.type.startsWith("image/")) {
+      throw new Error("Image response was not valid.");
+    }
+
+    imageUrl = URL.createObjectURL(blob);
+    preview.src = imageUrl;
+    preview.style.display = "block";
+    download.style.display = "inline-block";
+    status.textContent = "Your AI image is ready! 🎉";
+
+  } catch (error) {
+    status.textContent =
+      "Generation failed. Please check API authorization and try again.";
+  }
+
+  button.disabled = false;
+}
+
+function downloadImage() {
+  if (!imageUrl) return;
+
+  const link = document.createElement("a");
+  link.href = imageUrl;
+  link.download = "Ashraf-AI-Image.png";
+  link.click();
+}
+
+</script>
+
+</body>
+</html>
