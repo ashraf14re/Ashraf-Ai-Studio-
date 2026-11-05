@@ -118,8 +118,8 @@ Made with ❤️ by Ashraf
 
 let imageUrl = "";
 
-async function generateImage() {
 
+async function generateImage() {
   const prompt = document.getElementById("prompt").value.trim();
   const style = document.getElementById("style").value;
   const ratio = document.getElementById("ratio").value;
@@ -139,44 +139,45 @@ async function generateImage() {
   preview.style.display = "none";
   status.textContent = "AI is creating your image... Please wait!";
 
-  const fullPrompt = prompt + ", " + style;
-  const dimensions = ratio === "9:16"
-    ? [768, 1365]
-    : ratio === "16:9"
-    ? [1365, 768]
-    : [1024, 1024];
-
-  const url = "https://gen.pollinations.ai/image/" +
-    encodeURIComponent(fullPrompt) +
-    "?model=flux&width=" + dimensions[0] +
-    "&height=" + dimensions[1];
-
   try {
-    const response = await fetch(url);
+    const fullPrompt =
+      prompt + ", " + style + ", " + ratio + " composition";
 
-    if (!response.ok) {
-      throw new Error("Image request failed: " + response.status);
+    const response = await fetch(
+      "https://ashraf-ai-image-api.ashraf14re.workers.dev",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+          prompt: fullPrompt
+        })
+      }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok || !result.success) {
+      throw new Error(result.error || "Image generation failed");
     }
 
-    const blob = await response.blob();
+    imageUrl = "data:" + result.mimeType + ";base64," + result.image;
 
-    if (!blob.type.startsWith("image/")) {
-      throw new Error("Image response was not valid.");
-    }
-
-    imageUrl = URL.createObjectURL(blob);
     preview.src = imageUrl;
     preview.style.display = "block";
     download.style.display = "inline-block";
+
     status.textContent = "Your AI image is ready! 🎉";
 
   } catch (error) {
-    status.textContent =
-      "Generation failed. Please check API authorization and try again.";
+    console.error(error);
+    status.textContent = "Generation failed: " + error.message;
   }
 
   button.disabled = false;
 }
+
 
 function downloadImage() {
   if (!imageUrl) return;
